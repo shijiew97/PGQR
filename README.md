@@ -14,7 +14,12 @@ The main of PGQR is coded in `Python` while simulation and data generation is co
 - __[NAVID CUDA](https://developer.nvidia.com/cuda-toolkit)__ 10.2 or above
 
 #### _B_. Requaired R package 
-In R, we need `reticulate` package to run PGQR which is coded in `Python` in R. As comparison, we also consider other traditional conditional density estiamtion (CDE) methods, including _Random Forest CDE_ (RFCDE), _Nearest Neighbor Conditional Density Estimation_ (NNKCDE) and [FlexCoDE](https://github.com/rizbicki/FlexCoDE). The specifics of FlexCoDE installation can be found in following [FlexCoDE](https://github.com/rizbicki/FlexCoDE). The motorcycle dataset is included in the `adlift` package and nonparameteric quantile regression is implemented using R package `quantreg`.
+In R, we need `reticulate` package to run PGQR which is coded in `Python` in R. As comparison, we also consider other traditional conditional density estiamtion (CDE) methods, including 
+- _Random Forest CDE_ (RFCDE)
+- _Nearest Neighbor Conditional Density Estimation_ (NNKCDE)
+- [FlexCoDE](https://github.com/rizbicki/FlexCoDE) the specifics of FlexCoDE installation can be found in following [FlexCoDE](https://github.com/rizbicki/FlexCoDE). 
+
+The motorcycle dataset is included in the `adlift` package and nonparameteric quantile regression is implemented using R package `quantreg`.
 ```
 install.package("reticulate")
 install.package("RFCDE")
