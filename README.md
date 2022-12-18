@@ -8,7 +8,7 @@ We introduce a deep learning generative model for simultaneous quantile estimati
 In order to sucessfully run the PGQR model, we need to pre-install and confirm the following environments on your local machine. Moreover, there are several R packages that need to be installed beforehand. 
 
 #### _A_. Python, Pytorch and CUDA environment
-The main code for implementing PGQR is in `Python` while simulation and data generation is coded in `R`. The partial monotonic neural networks (PMNN) is constructed by the __Pytorch__ library. We strongly recommend using `CUDA` (GPU-based tool) to train PGQR, as this which can accelerate the runtime a lot more than using `CPU`.
+The main code for implementing PGQR is in `Python` while simulation and data generation is coded in `R`. The partial monotonic neural networks (PMNN) is constructed by the __Pytorch__ library. We strongly recommend using `CUDA` (GPU-based tool) to train PGQR, which can accelerate the runtime a lot more than using `CPU`.
 - __Python__ 3.7 or above
 - __[Pytroch](https://pytorch.org/)__ 1.11.0 or above
 - __[NAVID CUDA](https://developer.nvidia.com/cuda-toolkit)__ 10.2 or above
