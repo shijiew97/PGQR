@@ -179,7 +179,8 @@ for(mm in 1:4){
     print(paste(method, " evaluation starts!"))
     
     para_int = 1
-    if(model_type == "reg_P111"){p=1}
+    n = 2000
+    p = 5.0
     if(para_int == 1){
         N = 1
         m = 1
@@ -199,7 +200,9 @@ for(mm in 1:4){
         n0 = n
         zn = 100
         ntest = 100
+        #p = 10/2
         S = n
+        #fac = 1.0
         if(method == "QR"){fac = 10.0}
         
         
@@ -215,6 +218,8 @@ for(mm in 1:4){
         
         sigma0 = 1
     }
+    if(model_type == "reg_P111"){p=1}
+    if(model_type == "reg_linear"){p=1;sigma0=0.1}
     
     pen_on = 0
     if(method == "QR"){pen_on = 1}
@@ -236,10 +241,10 @@ for(mm in 1:4){
     ymat_pen_opt = readRDS(read_path)#(10,1000,200)
     
     for(j in 1:num_rep){
-        if(model_type != "reg_multimode"){Seed = Seed + j -1}
-        source("./R_code/data_gen.R")
+        #if(model_type != "reg_multimode"){Seed = Seed + j -1}
+        source("./R_code/GR_data_gen.R")
         n_test = 100
-        for(i in 100:200){
+        for(i in 101:200){
             
             yt_gen_pen = ymat_pen_opt[j,,i]
             
@@ -322,7 +327,8 @@ for(type0 in c("NN","SPAM","XGB","RFCDE")){
             sigma0 = 1
         }
         
-        if(model_type != "reg_multimode"){Seed = Seed + j -1}
+        if(model_type == "reg_multimode" | model_type == "reg_linear"){Seed = Seed}
+        else{Seed = Seed + j -1}
         source("./R_code/data_gen.R")
         
         
@@ -333,7 +339,7 @@ for(type0 in c("NN","SPAM","XGB","RFCDE")){
         if(type0 == "RFCDE"){flex_fit = RF_eval(X,y,Xt,yt);cde = flex_fit[[2]];grid = flex_fit[[1]];thres = flex_fit[[4]];mm = 8}
         
         n_test = 100
-        for(i in 100:200){
+        for(i in 101:200){
             X_gen = matrix(rep(Xt[i,], each=n0), n0, p)
             Z_gen = z_true(X_gen,n0)
             y_gen = gen_true(X_gen, Z_gen)
@@ -351,6 +357,7 @@ for(type0 in c("NN","SPAM","XGB","RFCDE")){
             CI_pen = grid[root_ind]
             #if(type0 == "NNKCDE"){CI_pen = HDII(grid,cde[i,],0.95)}
             if(model_type=="reg_P111"){CI_pen = HDII(flex_fit[[1]], cde[i,], 0.95)}
+            if(model_type=="reg_linear"){CI_pen = HDII(flex_fit[[1]], cde[i,], 0.95)}
             if(length(CI_pen)!=0){
                 if(length(CI_pen) == 1){
                     CI_pen0 = c(CI_pen, grid[1])
