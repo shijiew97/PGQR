@@ -63,6 +63,7 @@ if(para_int == 1){
 res = array(0, dim=c(num_rep,boot_size,0.1*n))
 
 #### Evaluation of replication ##
+fac = 1.0                      #alpha value 
 for(kk in 1:num_rep){
     
     if(para_int == 1){
@@ -86,7 +87,7 @@ for(kk in 1:num_rep){
         ntest = 100
         p = 10/2
         S = n
-        fac = 1.0
+        #fac = 1.0
         if(method == "QR"){fac = 10.0}
         
         
@@ -101,19 +102,20 @@ for(kk in 1:num_rep){
         NN_type = "MLP"
         
         sigma0 = 1
+        if(model_type == "reg_linear"){p = 1.0;sigma0 = 0.1;lam_min = -60}
+        if(model_type == "reg_P111"){p = 1.0}
     }
-    #if(model_type != "reg_multimode"){Seed = Seed + kk -1}
-    #### Get the data generation ####
-    source("./R_code/data_gen.R")
-    
-    #### Fit the PGQR model ####
-    if(method == "fGAN"){L=2;hidden_size=40;zn=3;pen_on=0}
-    if(method == "fGAN_C"){L=3;hidden_size=1000;zn=100;pen_on=0}
-    if(method == "WGAN"){L=1;hidden_size=40;zn=3;pen_on=0}
-    if(method == "QR_m"){pen_on=1}
-    if(method == "QR_nopen_m"){pen_on=0}
-    
-    source("./R_code/model_fit.R")
+    if(model_type == "reg_multimode" | model_type == "reg_linear"){Seed = Seed}
+    else{Seed = Seed + kk -1}
+    source("./R_code/GR_data_gen.R")
+    varpen = 2
+    pen_on = 0
+    if(method == "fGAN"){L=2;hidden_size=40;zn=3;num_it=10000*5}
+    if(method == "fGAN_C"){L=3;hidden_size=1500;zn=1000}
+    if(method == "WGAN"){L=1;hidden_size=20;zn=3;num_it=10000*5}
+    if(method == "QR"){pen_on = 1}
+    if(method == "QR_m"){pen_on = 1}
+    source("./R_code/GR_model_fit.R")
     
     ymat_pen = ymat
     if(pen_on == 1){
