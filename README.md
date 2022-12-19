@@ -1,5 +1,5 @@
 # PGQR
-This is an R package to implement the Penalized Generative Quantile Regression (PGQR)
+This is a guidance to implement the Penalized Generative Quantile Regression (PGQR)
 
 ## Abstract 
 We introduce a deep learning generative model for simultaneous quantile estimation called Penalized Generative Quantile Regression (PGQR). Our approach simultaneously generates samples from many random quantile levels, allowing us to infer the conditional distribution of a response variable given a set of covariates. Our method employs a novel variability penalty to avoid the problem of vanishing variability, or memorization, in deep generative models. Further, we introduce a new family of partial monotonic neural networks (PMNN) to circumvent the problem of crossing quantile curves. A major benefit of PGQR is that it can be fit using a single optimization, thus bypassing the need to repeatedly train the model at multiple quantile levels or use computationally expensive cross-validation to tune the penalty parameter. We illustrate the efficacy of PGQR through extensive simulation studies and analysis of real datasets.
