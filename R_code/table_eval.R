@@ -1,4 +1,5 @@
 #### Useful Function ####
+rm(list=ls())
 findThresholdHPD = function(binSize,estimates,confidence){
     estimates=as.vector(estimates)
     maxDensity=max(estimates)
@@ -30,7 +31,7 @@ flex_eval = function(X,y,Xt,yt,type="NN"){
     
     ## Fit the training data
     if(type=="NN"){fit = fitFlexCoDE(X_train,y_train,X_val,y_val,Xt,yt,nIMax=20,regressionFunction=regressionFunction.NN, n_grid =500)}
-    if(type=="SPAM"){fit = fitFlexCoDE(X_train,y_train,X_val,y_val,Xt,yt,nIMax=20,regressionFunction= regressionFunction.SpAM, n_grid =500)}
+    if(type=="SPAM"){fit = fitFlexCoDE(X_train,y_train,X_val,y_val,Xt,yt,nIMax=2,regressionFunction= regressionFunction.SpAM, n_grid =500)}
     if(type=="XGB"){fit = FlexZBoost(X_train,y_train,X_val,y_val,Xt,yt,nIMax=20,n_grid=500)}
     if(type=="Series"){fit = fitFlexCoDE(X_train,y_train,X_val,y_val,Xt,yt,nIMax=20,regressionFunction= regressionFunction.Series, n_grid =500)}
     ## Get the predition cde and threshold for prediction band
@@ -137,18 +138,19 @@ RF_eval = function(X,y,Xt,yt){
 #### Setting the working directory ####
 #rm(list=ls())
 #setwd("~/Dropbox/Shijie/GR")
+#setwd("C:/Users/18036/Dropbox/Shijie/GR")
 
 #### Simulation setting ####
-model_type = "reg_P111"        #Simualtion 1
+#model_type = "reg_P111"       #Simualtion 1
 #model_type = "reg_nonparam"   #Simualtion 4
 #model_type = "reg_simple"     #Overfitting illustration
 #model_type = "reg_skew"       #Simulation 2
-#model_type = "reg_linear"     #Small variance
+#model_type = "reg_linear"     #Simulation 5 (Small variance)
 #model_type = "reg_multimode"  #Simulation 3
-
+#model_type = "reg_norm"       #Simulation 6
 
 #### Different model ####
-method = "QR_m"                #PGQR
+#method = "QR_m"               #PGQR
 #method = "QR_nopen_m"         #GQR
 #method = "fGAN"               #GCDS
 #method = "fGAN_C"             #deep-GCDS
@@ -156,7 +158,7 @@ method = "QR_m"                #PGQR
 
 
 #### Calculate the MSE of median, mean, sd, quantile ##
-evals = c("E(Y|X)","sd(Y|X)","10%","20%","30%","40%","50%","60%","70%","80%","90%","cov","width")
+evals = c("E(Y|X)","sd(Y|X)","10%","20%","30%","40%","50%","60%","70%","80%","90%","cov","width", "TV", "HD", "KL")
 method0 = c("fGAN","fGAN_C", "WGAN", "QR_m", "flexcode_NN","flexcode_SPAM","flexcode_XGB","RFCDE")
 res_table = matrix(0, nrow=length(method0), ncol=length(evals))
 colnames(res_table) = evals
@@ -166,13 +168,16 @@ n_test = 100                   #number of out-of-sample test points
 tau_cand = seq(0.1, 0.9, length=9)
 
 #### Here: choose different alpha value ####
-fac = 1.0                      #alpha value
+fac = 1.0*1                    #alpha value
 n = 2000                       #sample size
 p = 5.0                        #covariate dimension
+stat_sd = array(0, dim=c(num_rep, 4))
+target = 4
 
 #### Begin evulation of performance ####
 #### Specially for Generative models ####
-for(mm in 1:4){
+for(mm in target){
+#for(mm in 1:4){
     #mm = 1
     library("HDInterval")
     method = method0[mm]
@@ -180,7 +185,6 @@ for(mm in 1:4){
     
     para_int = 1
     n = 2000
-    p = 5.0
     if(para_int == 1){
         N = 1
         m = 1
@@ -218,6 +222,7 @@ for(mm in 1:4){
         
         sigma0 = 1
     }
+    p = 5.0
     if(model_type == "reg_P111"){p=1}
     if(model_type == "reg_linear"){p=1;sigma0=0.1}
     
@@ -242,7 +247,7 @@ for(mm in 1:4){
     
     for(j in 1:num_rep){
         #if(model_type != "reg_multimode"){Seed = Seed + j -1}
-        source("./R_code/GR_data_gen.R")
+        source("./R_code/data_gen.R")
         n_test = 100
         for(i in 101:200){
             
@@ -262,8 +267,28 @@ for(mm in 1:4){
             stat_gen = c(mean(yt_gen_pen),sd(yt_gen_pen),quantile(yt_gen_pen,probs=tau_cand))
             stat_true = c(mean(y_gen),sd(y_gen),quantile(y_gen,probs=tau_cand))
             
-            num_m = length(evals)-2
+            ##Total deviance of quantile function
+            rk = c(0)
+            for(k in 1:9){
+                cur = sum( (y_gen <= stat_gen[k+2]) )/n0
+                rk = c(rk, cur)
+            }
+            rk = c(rk, 1)
+            pk = diff(rk)
+            tv = sum(abs(0.1 - pk))
+            hd = sum( (sqrt(0.1)-sqrt(pk))^2 )
+            kl = -sum( 0.1*log(pk) )
+            
+            res_table[mm, length(evals)-2] = res_table[mm, length(evals)-2] + tv
+            res_table[mm, length(evals)-1] = res_table[mm, length(evals)-1] + hd
+            res_table[mm, length(evals)] = res_table[mm, length(evals)] + kl
+            
+            num_m = length(evals)-5
             res_table[mm,1:num_m] = res_table[mm,1:num_m] + (stat_true-stat_gen)^2
+            
+            stat_sd[j, 1:2] = stat_sd[j, 1:2] + ((stat_true-stat_gen)^2)[1:2]/n_test
+            stat_sd[j, 3] = stat_sd[j, 3] + tv/n_test
+            stat_sd[j, 4] = stat_sd[j, 3] + hd/n_test
             
             CI_pen = quantile(yt_gen_pen, probs=c(0.025,0.975))#hdi(yt_gen_pen, credMass=0.95)
             if(length(CI_pen) == 2){
@@ -278,16 +303,19 @@ for(mm in 1:4){
     }
 }
 
+#res_table = round(res_table/(num_rep*n_test),4)
+#print(res_table[target, c(1,2,12,13,14,15,16)])
+#print(apply(stat_sd, 2, sd))
+
 
 #### Tranditional CDE models ####
-#type0 = "NN"
-#type0 = "S"
+type0 = "NN"
+#type0 = "SPAM"
 #type0 = "XGB"
 #type0 = "RFCDE"
-for(type0 in c("NN","SPAM","XGB","RFCDE")){
+for(type0 in c("NN", "SPAM", "XGB","RFCDE")){
     for(j in 1:num_rep){
         
-        p = 1.0
         print(paste(type0, ": iteration <<", j, ">> starts!", sep=""))
         para_int = 1
         if(para_int == 1){
@@ -327,6 +355,10 @@ for(type0 in c("NN","SPAM","XGB","RFCDE")){
             sigma0 = 1
         }
         
+        p = 5.0
+        if(model_type == "reg_P111"){p=1}
+        if(model_type == "reg_linear"){p=1;sigma0=0.1}
+        
         if(model_type == "reg_multimode" | model_type == "reg_linear"){Seed = Seed}
         else{Seed = Seed + j -1}
         source("./R_code/data_gen.R")
@@ -344,9 +376,11 @@ for(type0 in c("NN","SPAM","XGB","RFCDE")){
             Z_gen = z_true(X_gen,n0)
             y_gen = gen_true(X_gen, Z_gen)
             
-            num_m = length(evals)-2
+            num_m = length(evals)-3
             stat_true = c(mean(y_gen),sd(y_gen),quantile(y_gen,probs=c(0.05,0.1,0.25,0.5,0.75,0.9,0.95)))
             res_table[mm,1:num_m] = res_table[mm,1:num_m] + (stat_true-flex_fit[[3]][,i])^2
+            
+            stat_sd[j, 1:2] = stat_sd[j, 1:2] + ((stat_true-flex_fit[[3]][,i])^2)[1:2]/n_test
             
             #get CI
             rr = cde[i,]-thres[i,]+1e-20
@@ -385,6 +419,7 @@ for(type0 in c("NN","SPAM","XGB","RFCDE")){
 
 #### Print the table results ####
 res_table = round(res_table/(num_rep*n_test),4)
+#print(apply(stat_sd, 2, sd))
 print(res_table)
 
 #### Get the saving path ####

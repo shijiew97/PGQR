@@ -198,6 +198,38 @@ if(model_type == "reg_linear"){
     Z = z_true(Xt,n_test)
     yt = gen_true(Xt,Z)
 }
+if(model_type == "reg_norm"){
+    
+    
+    bt0 = seq(-2,2,length.out=p)
+    
+    gen_true = function(X,Z){
+        bt0 = seq(-2,2,length.out=p)
+        y = X%*%bt0  + Z
+        y = matrix(y,length(y),1)
+        return(y)
+    }
+    
+    z_true = function(x,n){
+        sdd = apply(x, 1, function(x) sum(abs(x)))
+        zz = rnorm(n, 0, sd=exp(0.5*sdd));return(zz)}
+    
+    Seed = 128783
+    set.seed(Seed)
+    X = matrix(runif(n*p, -1, 1), ncol=p)
+    Z = z_true(X,n)
+    y = gen_true(X,Z)
+    
+    n_test = 0.05/2*n
+    if(n<=5000){n_test=0.1*n}
+    if(n>5000&n<=10000){n_test=500}
+    Xt = matrix(rnorm(n_test*p), ncol=p)
+    Xt[1,] = c(1, rep(0,p-1))
+    Xt[2,] = c(0, 1, rep(0,p-2))
+    Xt[3,] = c(0, 0, 1, rep(0, p-3))
+    Z = z_true(Xt,n_test)
+    yt = gen_true(Xt,Z)
+}
 if(model_type == "reg_skewV2"){
     
     

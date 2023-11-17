@@ -1,18 +1,19 @@
 #### Setting the working directory ####
 #rm(list=ls())
 #setwd("~/Dropbox/Shijie/GR")
+#setwd("C:/Users/18036/Dropbox/Shijie/GR")
 
 #### Simulation setting ####
-model_type = "reg_P111"        #Simualtion 1
+#model_type = "reg_P111"       #Simualtion 1
 #model_type = "reg_nonparam"   #Simualtion 4
 #model_type = "reg_simple"     #Overfitting illustration
 #model_type = "reg_skew"       #Simulation 2
-#model_type = "reg_linear"     #Small variance
+#model_type = "reg_linear"     #Simulation 5 (Small variance)
 #model_type = "reg_multimode"  #Simulation 3
-
+#model_type = "reg_norm"       #Simulation 6
 
 #### Different model ####
-method = "QR_m"                #PGQR
+#method = "QR_m"               #PGQR
 #method = "QR_nopen_m"         #GQR
 #method = "fGAN"               #GCDS
 #method = "fGAN_C"             #deep-GCDS
@@ -39,6 +40,7 @@ zn = 100
 ntest = 100
 p = 5.0                        #covariate dimension
 if(model_type == "reg_P111"){p = 1.0}
+if(model_type == "reg_linear"){p = 1.0}
 S = n
 fac = 1.0                      #alpha value
 
@@ -66,13 +68,13 @@ if(method == "WGAN"){L=1;hidden_size=40;zn=3;pen_on=0}
 if(method == "QR_m"){pen_on=1}
 if(method == "QR_nopen_m"){pen_on=0}
 
-source("./R_code/model_fit.R")
+#source("./R_code/model_fit.R")
 
 #### whether to include following model in plot ####
 flex = 0                       #flexcode method
-fGAN = 0                       #GCDS 
-fGAN_C = 0                     #deep-GCDS
-WGAN = 0                       #WGCS
+fGAN = 1                       #GCDS 
+fGAN_C = 1                     #deep-GCDS
+WGAN = 1                       #WGCS
 
 #### Get the results ####
 if(flex == 1){
@@ -384,6 +386,7 @@ if(method == "QR_m"){
     
     #data_type = paste(data_type,"_",p,"_", n sep="")
     num_it = 10000
+    sensitive = 0
     if(sensitive==0){data_type = paste(data_type,"_",p,"_", n, "_", num_it/1000, "K", sep="")}
     if(sensitive==1){data_type = paste(data_type,"_",p,"_", n, "_", num_it/1000, "K","_a_",fac,sep="")}
     
@@ -455,7 +458,7 @@ if(method == "QR_m"){
                 abline(h=0.1, col="orange", lty=2)
             }else{
                 boxplot(con_std~label, data=csd, col=rgb(0.5,0.5,1),
-                        xlab="log-lambda", ylab="conditional std",cex.lab=1.3, ylim=c(0,5))}
+                        xlab="log-lambda", ylab="conditional std",cex.lab=1.3)}
             abline(v=ind_opt, col="red", lty=2, lwd=1)
             
             plot(x=lam_cand0,y=freq95,xlab="log-lambda", ylab="Covergae rate",cex.lab=1.3,pch=16)
@@ -582,6 +585,7 @@ if(method == "QR_nopen_m"){
 #### Get the plot ####
 n0 = dim(ymat_pen_opt)[1]
 num_plot = 3
+if(model_type = "reg_norm"){num_plot = 6}
 
 #### Plot setting ####
 path0 = paste("/result/",n,"/",sep="")
@@ -591,24 +595,25 @@ if(num_plot == 9){
     par(mfrow=c(3,3), mai=c(0.4,0.4,0.2,0.2))
 }
 if(num_plot == 6){
-    png(name0, width=850, height=350)
+    png(name0, width=1450, height=614)
     par(mfrow=c(2,3), mai=c(0.4,0.4,0.2,0.2))
 }
 if(num_plot == 3){
-    png(name0, width=850, height=200)
+    png(name0, width=1450, height=400)
     par(mfrow=c(1,3), mai=c(0.4,0.4,0.2,0.2))
 }
 if(num_plot == 4){
-    png(name0, width=850, height=250)
+    png(name0, width=900, height=250)
     par(mfrow=c(2,2), mai=c(0.4,0.4,0.2,0.2))
 }
 
 #### Graph results ####
 if(num_plot != 4){
-    for(i in (num_plot+1):(num_plot+3)){
+    for(i in (num_plot+1):(num_plot+num_plot)){
         
         if(model_type != "reg_skew"){j = 2*i^2 + 1}
         else{j = 2*i^2 + 2}
+        if(model_type == "reg_norm"){j = i^2 + 2*i}
         if(model_type=="reg_P111"){
             jj0 = quantile(1:length(Xt), probs=c(0.05,0.10,0.25,0.5,0.75,0.9))
             j = jj0[i]
@@ -619,6 +624,7 @@ if(num_plot != 4){
         if(method == "QR"|method == "QR_m"){
             quant = quantile(yt_QR, probs=c(0.02,0.98))
             if(model_type == "reg_skewV2"){quant = quantile(yt_QR, probs=c(0.004,0.996))}
+            if(model_type == "reg_norm"){quant = quantile(yt_QR, probs=c(0.004,0.996))}
             ind_out = c(which(yt_QR>=quant[2]), which(yt_QR<=quant[1]))
             yt_QR = yt_QR[-ind_out]
             n0 = length(yt_QR)
@@ -637,7 +643,8 @@ if(num_plot != 4){
         if(model_type=="reg_nonparam"){c0 = rep(0.6,10)}
         if(model_type=="reg_simple"){c0 = c(0.6,0.6,0.6,0.6,0.6,0.6,0.4,0.5,0.4)}
         if(p == 50){c0 = c(0.5,0.5,0.6,0.6,0.6,0.6,0.4,0.5,0.4)}
-        
+        if(model_type=="reg_norm"){c0 = rep(0.5, 100)}
+            
         #c0 = rep(0.3,10)
         den_t = density(y_gen, bw=0.3*sd(y_gen))
         den_QR = density(yt_QR, bw=c0[i]*sd(yt_QR))
@@ -661,13 +668,13 @@ if(num_plot != 4){
             Ylim = c(0, 0.4)
             if(i == 4){Xlim=c(-10,20)}
             if(i == 5){Xlim=c(-20,10)}
-            if(i == 6){Xlim=c(-20,15)}
+            if(i == 6){Xlim=c(-20,25)}
         }
         if(model_type=="reg_multimode"){
             Ylim = c(0, 0.4)
-            if(i == 4){Xlim=c(-10,15)}
-            if(i == 5){Xlim=c(-10,10)}
-            if(i == 6){Xlim=c(-10,10)}
+            if(i == 4){Xlim=c(-5,10)}
+            if(i == 5){Xlim=c(-15,5)}
+            if(i == 6){Xlim=c(-5,20)}
         }
         if(model_type=="reg_P111"){
             Xlim = c(-30, 30)
@@ -675,6 +682,7 @@ if(num_plot != 4){
             if(i== 4){
                 Xlim = c(-5, 5)
                 Ylim = c(0, 4)}
+            if(i == 6){Xlim=c(-60,75)}
         }
         if(model_type=="reg_nonparam"){
             Ylim = c(0, 0.6)
@@ -683,6 +691,10 @@ if(num_plot != 4){
         if(model_type=="reg_linear"){
             Ylim = c(0, 5)
             Xlim = c(-3, 0)
+        }
+        if(model_type=="reg_norm"){
+            Ylim = c(0, 0.2)
+            Xlim = c(-40, 40)
         }
         
         
@@ -696,36 +708,40 @@ if(num_plot != 4){
                           sep="")
         }
         
-        plot(den_t, col="black", xlim=Xlim, ylim=Ylim, xlab="", ylab="", main="",lwd=3, cex.axis=1.2)
+        plot(den_t, col="black", xlim=Xlim, ylim=Ylim, xlab="", ylab="", main="",lwd=3, cex.axis=2.0)
         lines(den_QR, col=rgb(0,0,1,1), lwd=3, lty=1)
-        points(den_QR, col=rgb(0,0,1,1), pch=c(16, rep(NA, 80)), cex=2.5, lwd=2)
+        points(den_QR, col=rgb(0,0,1,1), pch=c(16, rep(NA, 80)), cex=3.5, lwd=2)
         if(fGAN == 1){
             lines(den_fGAN, col=rgb(1,0,0,0.9), lwd=2, lty=3)
-            points(den_fGAN, col=rgb(1,0,0,0.9), pch=c(2, rep(NA, 80)), cex=2.0, lwd=2)
+            points(den_fGAN, col=rgb(1,0,0,0.9), pch=c(2, rep(NA, 80)), cex=3.5, lwd=2)
         }
         if(fGAN_C == 1){
             lines(den_fGAN_C, col=rgb(0.5,0,0.5,0.9), lwd=2, lty=4)
-            points(den_fGAN_C, col=rgb(0.5,0,0.5,0.9), pch=c(3, rep(NA, 80)), cex=2.0, lwd=2)}
+            points(den_fGAN_C, col=rgb(0.5,0,0.5,0.9), pch=c(3, rep(NA, 80)), cex=3.5, lwd=2)}
         #if(WGAN == 1){lines(den_WGAN, col=rgb(0.5,0,0.5,0.9), lwd=2, lty=2)}
         if(flex == 1){lines(flex_grid, flex_cde[j,], col=rgb(1,0.6,0,0.9),lwd=2,lty=2)}
         #lines(NNK_grid, NNK_cde[j,], col=rgb(1,0.6,0,0.4),lwd=2,lty=1)
         #lines(den2, col=rgb(1,0,0,0.6), lwd=2, lty=2)
         points(x=center, y=0, col="black", pch=4, lwd=2, cex=2)
         #if(i !=num_plot){text(x=19,y=Ylim[2]-0.05,labels=j,cex=1.2)}
+        if(model_type=="reg_norm"){
+            text(-40, 0.18, expression("||X||"[1]), pos=4, cex=3)
+            text(-30, 0.18, paste("=", round(sum(abs(Xt[j,])), 1)), pos=4, cex=3)
+        }
         if(WGAN == 1){
             lines(den_WGAN, col=3, lwd=2, lty=5)
-            points(den_WGAN, col=3, pch=c(4, rep(NA, 80)), cex=2.0, lwd=2)}
+            points(den_WGAN, col=3, pch=c(4, rep(NA, 80)), cex=3.5, lwd=2)}
     }
     
     if(fGAN == 0){legend("topright", c("True","PGQR"),
                          col=c("black",rgb(0,0,1)),
-                         lwd=c(2,2), lty=c(1,2), bty="n", cex=1.2,
+                         lwd=c(2,2), lty=c(1,2), bty="n", cex=3.0,
                          pch=c(NA,16))}
     else{
         legend("topright", c("True","PGQR","GCDS","WGCS","deep-GCDS"),
                col=c("black",rgb(0,0,1),rgb(1,0,0),3,rgb(0.5,0,0.5)),
-               lwd=c(2,2,2,2,2), lty=c(1,2,3,4,5), bty="n", cex=1.2,
-               pch=c(NA,16,2,3,4))
+               lwd=c(2,2,2,2,2), lty=c(1,2,3,4,5), bty="n", cex=2.5,
+               pch=c(NA,16,2,4,3))
     }
     dev.off()
 }

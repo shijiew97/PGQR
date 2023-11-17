@@ -1,18 +1,19 @@
 #### Setting the working directory ####
 #rm(list=ls())
 #setwd("~/Dropbox/Shijie/GR")
+setwd("C:/Users/18036/Dropbox/Shijie/GR")
 
 #### Simulation setting ####
-model_type = "reg_P111"        #Simualtion 1
+#model_type = "reg_P111"       #Simualtion 1
 #model_type = "reg_nonparam"   #Simualtion 4
 #model_type = "reg_simple"     #Overfitting illustration
 #model_type = "reg_skew"       #Simulation 2
-#model_type = "reg_linear"     #Small variance
+#model_type = "reg_linear"     #Simulation 5 (Small variance)
 #model_type = "reg_multimode"  #Simulation 3
-
+#model_type = "reg_norm"       #Simulation 6
 
 #### Different model ####
-method = "QR_m"                #PGQR
+#method = "QR_m"               #PGQR
 #method = "QR_nopen_m"         #GQR
 #method = "fGAN"               #GCDS
 #method = "fGAN_C"             #deep-GCDS
@@ -63,7 +64,7 @@ if(para_int == 1){
 res = array(0, dim=c(num_rep,boot_size,0.1*n))
 
 #### Evaluation of replication ##
-fac = 1.0                      #alpha value 
+#fac = 1.0*1                      #alpha value 
 for(kk in 1:num_rep){
     
     if(para_int == 1){
@@ -107,7 +108,7 @@ for(kk in 1:num_rep){
     }
     if(model_type == "reg_multimode" | model_type == "reg_linear"){Seed = Seed}
     else{Seed = Seed + kk -1}
-    source("./R_code/GR_data_gen.R")
+    source("./R_code/data_gen.R")
     varpen = 2
     pen_on = 0
     if(method == "fGAN"){L=2;hidden_size=40;zn=3;num_it=10000*5}
@@ -115,7 +116,7 @@ for(kk in 1:num_rep){
     if(method == "WGAN"){L=1;hidden_size=20;zn=3;num_it=10000*5}
     if(method == "QR"){pen_on = 1}
     if(method == "QR_m"){pen_on = 1}
-    source("./R_code/GR_model_fit.R")
+    source("./R_code/model_fit.R")
     
     ymat_pen = ymat
     if(pen_on == 1){
