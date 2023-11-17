@@ -73,6 +73,14 @@ _It is very crucial to set the working directory manually such as "/yourlocalmac
 - __cross_quantile.R__ is to produce the plot of the crossing quantile phenomenon in the motorcycle and bone mass density datasets from the results by __real_fit.R__.
 - __APL_plot.R__ is to produce the plot of APL/F ratio plot from the results by __real_fit.R__.
 
+#### _E_. Takeuchi's Example
+- __Takeuchi_fit.R__ is to implement PGQR on the illustration exmaple 1 from "Nonparametric Quantile Estimation (Takeuchi et al., 2006)".
+- __Takeuchi_plot.R__ is to plot the result from __Takeuchi_fit.R__.
+
+#### _F_. Quantile comparison
+- __quantile_compare.R__ is to compare PGQR with MCQRNN and NMQN under Simulation 1 to 6, which runs NMQN and MCQRNN.
+- __quantile_summary.R__ is to compute and plot the performance comparison in terms of total variation distance (TV) and Hellinger distance (HD).
+
 
 
 
